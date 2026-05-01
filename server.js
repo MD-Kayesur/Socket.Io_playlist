@@ -5,12 +5,28 @@ import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 import { connectDB, getCollection, closeDB } from './config/database.js';
+import { Server } from "socket.io";
+import http from 'http';
 
 // Load environment variables
 dotenv.config();
 
 // Create Express app
 const app = express();
+
+const server = http.createServer(app);
+
+
+// socket.io setup will go here in future videos
+
+const io = new Server(server, {cors: { origin: process.env.CLIENT_URL || '*', credentials: true,methods: ["GET", "POST"] }});
+
+io.on("connection", (socket) => {
+  // ...
+  console.log(`A user connected ${socket.id}`);
+  // return socket.emit("welcome", "Welcome to the chat!");
+});
+
 
 // Middleware
 app.use(cors({ origin: process.env.CLIENT_URL || '*', credentials: true }));
@@ -119,7 +135,7 @@ process.on('SIGINT', shutdown);
 const PORT = process.env.PORT || 5000;
 
 connectDB().then(() => {
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`
 ╔════════════════════════════════════════╗
 ║  🚀 Server Running                     ║
