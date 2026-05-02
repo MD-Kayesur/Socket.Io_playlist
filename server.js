@@ -24,6 +24,9 @@ const io = new Server(server, { cors: { origin: process.env.CLIENT_URL || '*', c
 io.on("connection", (socket) => {
   // ...
   console.log(`A user connected ${socket.id}`);
+  socket.emit("connected",{message: `User ${socket.id} connected`})
+  //for handiling the order
+  orderHandler(io,socket);
   // return socket.emit("welcome", "Welcome to the chat!");
 });
 
