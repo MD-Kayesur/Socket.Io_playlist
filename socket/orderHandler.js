@@ -1,4 +1,4 @@
-const orderHandler = (io, socket) => {
+export const orderHandler = (io, socket) => {
 console.log("Order handler connected",socket.id)
 //emit -> trigger-> on -> listen
 
@@ -7,7 +7,7 @@ socket.on("placeOrder", async(data,callback)=>{
 try{
     console.log(`placed orider from ${socket.id} ` )
     const vlaidation= validateOrder(data)
-    if(validation.error){
+    if(!validation.valid){
         return callback({success:false , message:validation.error.details[0].message})
     }
 }catch(error){
