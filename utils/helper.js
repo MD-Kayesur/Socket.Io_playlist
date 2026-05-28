@@ -67,7 +67,7 @@ export function createOrderDocument(oderData,orderId,totals){
         customerName:orderData.customerName.trim(),
         status:"pending",//created,confirmed,assigned,collected,delivered,cancelled
         
-        
+
         timestamps: {
             createdAt: new Date(),
             updatedAt: new Date()
@@ -76,3 +76,18 @@ export function createOrderDocument(oderData,orderId,totals){
         
     }
 },
+
+export function inValidStatusTransition ( currentStatus,newStatus){
+    const validTransitions ={
+        'padding':['confirmed','cancelled'],
+        'confirmed':['assigned','cancelled'],
+        'assigned':['collected','cancelled'],
+        'ready':['out_for_delivery','cancelled'],
+        'out_for_delivery':['delivered','cancelled'],
+        'delivered':['cancelled'],
+        'cancelled':[]
+    }
+    const validNextStatus=validTransitions[currentStatus]
+    if(validNextStatus.includes(newStatus))
+        return false
+}
