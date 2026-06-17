@@ -1,5 +1,5 @@
 // server.js
-// Main server file - Express + MongoDB (Socket.IO will be added in videos)
+// Main server file - Express + MongoDB + Socket.IO
 
 import dotenv from 'dotenv';
 import express from 'express';
@@ -7,33 +7,35 @@ import cors from 'cors';
 import { connectDB, getCollection, closeDB } from './config/database.js';
 import { Server } from "socket.io";
 import http from 'http';
+import { orderHandler } from './socket/orderHandler.js';
 
 // Load environment variables
 dotenv.config();
 
 // Create Express app
 const app = express();
-
 const server = http.createServer(app);
 
-
-// socket.io setup will go here in future videos
-
-const io = new Server(server, { cors: { origin: process.env.CLIENT_URL || '*', credentials: true, methods: ["GET", "POST"] } });
-
-io.on("connection", (socket) => {
-  // ...
-  console.log(`A user connected ${socket.id}`);
-  socket.emit("connected",{message: `User ${socket.id} connected`})
-
-//orderid
-console.log("order id")
-
-  //for handiling the order
-  orderHandler(io,socket);
-  // return socket.emit("welcome", "Welcome to the chat!");
+// Initialize Socket.IO
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CLIENT_URL || '*',
+    credentials: true,
+    methods: ["GET", "POST"]
+  }
 });
 
+io.on("connection", (socket) => {
+  console.log(`🔌 A user connected: ${socket.id}`);
+  socket.emit("connected", { message: `User ${socket.id} connected` });
+
+  // Handle order-related socket events
+  orderHandler(io, socket);
+
+  socket.on("disconnect", () => {
+    console.log(`🔌 User disconnected: ${socket.id}`);
+  });
+});
 
 // Middleware
 app.use(cors({ origin: process.env.CLIENT_URL || '*', credentials: true }));
@@ -59,7 +61,7 @@ app.get('/api/orders', async (req, res) => {
     const ordersCollection = getCollection('orders');
     const orders = await ordersCollection
       .find({})
-      .sort({ createdAt: -1 })
+      .sort({ 'timestamps.createdAt': -1, createdAt: -1 })
       .limit(20)
       .toArray();
 
@@ -142,7 +144,7 @@ process.on('SIGINT', shutdown);
 const PORT = process.env.PORT || 5000;
 
 connectDB().then(() => {
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`
 ╔════════════════════════════════════════╗
 ║  🚀 Server Running                     ║
