@@ -76,8 +76,11 @@ export function createOrderDocument(orderData, orderId, totals) {
         courierName: orderData.courierName?.trim() || '',
         courierPhone: orderData.courierPhone?.trim() || '',
         paymentMethod: orderData.paymentMethod,
-        status: "pending", // created, confirmed, assigned, collected, delivered, cancelled
-        totals,
+        customerPhone: orderData.courierPhone,
+        customerName:orderData.customerName.trim(),
+        status:"pending",//created,confirmed,assigned,collected,delivered,cancelled
+        
+
         timestamps: {
             createdAt: new Date(),
             updatedAt: new Date()
@@ -100,5 +103,19 @@ export function inValidStatusTransition(currentStatus, newStatus) {
     if (validNextStatus.includes(newStatus)) {
         return false;
     }
-    return true;
+},
+
+export function inValidStatusTransition ( currentStatus,newStatus){
+    const validTransitions ={
+        'padding':['confirmed','cancelled'],
+        'confirmed':['assigned','cancelled'],
+        'assigned':['collected','cancelled'],
+        'ready':['out_for_delivery','cancelled'],
+        'out_for_delivery':['delivered','cancelled'],
+        'delivered':['cancelled'],
+        'cancelled':[]
+    }
+    const validNextStatus=validTransitions[currentStatus]
+    if(validNextStatus.includes(newStatus))
+        return false
 }
